@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
   const lat = Number(latParam)
   const lng = Number(lngParam)
 
+  if (isNaN(lat) || isNaN(lng)) {
+    return NextResponse.json({ error: '유효하지 않은 좌표입니다.' }, { status: 400 })
+  }
+
   const radius = Number(searchParams.get('radius') ?? '1000')
   const category = (searchParams.get('category') ?? '전체') as CategoryFilter
 
