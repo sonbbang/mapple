@@ -3,12 +3,15 @@ import { searchRestaurants, type CategoryFilter } from '@/lib/kakao'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl
-  const lat = Number(searchParams.get('lat'))
-  const lng = Number(searchParams.get('lng'))
+  const latParam = searchParams.get('lat')
+  const lngParam = searchParams.get('lng')
 
-  if (!lat || !lng) {
+  if (latParam === null || lngParam === null) {
     return NextResponse.json({ error: '위치 정보가 필요합니다.' }, { status: 400 })
   }
+
+  const lat = Number(latParam)
+  const lng = Number(lngParam)
 
   const radius = Number(searchParams.get('radius') ?? '1000')
   const category = (searchParams.get('category') ?? '전체') as CategoryFilter
