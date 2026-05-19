@@ -1,65 +1,169 @@
-import Image from "next/image";
+'use client'
+
+import { useRef, useState, useCallback } from 'react'
+import FilterPanel from '@/components/FilterPanel'
+import SpinWheel, { type SpinWheelRef } from '@/components/SpinWheel'
+import ResultCard from '@/components/ResultCard'
+import type { KakaoPlace, CategoryFilter } from '@/lib/kakao'
+
+const PLACEHOLDER_RESTAURANTS: KakaoPlace[] = [
+  '명동교자', '스시로', '홍콩반점', '한솥도시락',
+  '교촌치킨', '맥도날드', '버거킹', '서브웨이',
+].map((name, i) => ({
+  id: String(i),
+  place_name: name,
+  category_name: '음식점',
+  address_name: '',
+  road_address_name: '',
+  distance: '0',
+  place_url: '',
+}))
 
 export default function Home() {
+  const [radius, setRadius] = useState(1000)
+  const [category, setCategory] = useState<CategoryFilter>('전체')
+  const [restaurants, setRestaurants] = useState<KakaoPlace[]>(PLACEHOLDER_RESTAURANTS)
+  const [winner, setWinner] = useState<KakaoPlace | null>(null)
+  const [spinning, setSpinning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [locationFallback, setLocationFallback] = useState(false)
+  const [address, setAddress] = useState('')
+  const wheelRef = useRef<SpinWheelRef>(null)
+
+  const startSpin = useCallback((list: KakaoPlace[]) => {
+    const capped = list.slice(0, 8)
+    setRestaurants(capped)
+    setWinner(null)
+    setSpinning(true)
+    const winnerIndex = Math.floor(Math.random() * capped.length)
+    setTimeout(() => wheelRef.current?.spin(winnerIndex), 50)
+  }, [])
+
+  const fetchAndSpin = useCallback(
+    async (lat: number, lng: number) => {
+      const res = await fetch(
+        `/api/restaurants?lat=${lat}&lng=${lng}&radius=${radius}&category=${encodeURIComponent(category)}`
+      )
+      if (!res.ok) {
+        setError('식당 검색에 실패했습니다. 다시 시도해주세요.')
+        setSpinning(false)
+        return
+      }
+      const data = await res.json()
+      const list: KakaoPlace[] = data.restaurants
+      if (list.length === 0) {
+        setError('주변 식당을 찾지 못했습니다. 반경을 늘려보세요.')
+        setSpinning(false)
+        return
+      }
+      startSpin(list)
+    },
+    [radius, category, startSpin]
+  )
+
+  const handleSpin = useCallback(async () => {
+    if (spinning) return
+    setError(null)
+
+    if (locationFallback) {
+      if (!address.trim()) {
+        setError('주소를 입력해주세요.')
+        return
+      }
+      const res = await fetch(`/api/geocode?query=${encodeURIComponent(address)}`)
+      if (!res.ok) {
+        const body = await res.json()
+        setError(body.error ?? '주소를 찾을 수 없습니다.')
+        return
+      }
+      const coords = await res.json()
+      await fetchAndSpin(coords.lat, coords.lng)
+      return
+    }
+
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
+      )
+      await fetchAndSpin(pos.coords.latitude, pos.coords.longitude)
+    } catch {
+      setLocationFallback(true)
+      setError('위치 권한이 거부됐습니다. 아래에 주소를 입력해주세요.')
+    }
+  }, [spinning, locationFallback, address, fetchAndSpin])
+
+  const handleSpinEnd = useCallback((w: KakaoPlace) => {
+    setWinner(w)
+    setSpinning(false)
+  }, [])
+
+  const handleReroll = useCallback(() => {
+    if (restaurants.length === 0) return
+    setWinner(null)
+    setSpinning(true)
+    const winnerIndex = Math.floor(Math.random() * restaurants.length)
+    setTimeout(() => wheelRef.current?.spin(winnerIndex), 50)
+  }, [restaurants])
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <main className="min-h-screen text-slate-100 flex flex-col items-center px-4 py-8">
+      <div className="w-full max-w-sm space-y-4">
+        {/* 헤더 */}
+        <header className="text-center">
+          <h1 className="text-2xl font-black">🍽️ 맛플</h1>
+          <p className="text-slate-500 text-sm">오늘 점심, 운에 맡겨봐</p>
+        </header>
+
+        {/* 위치 폴백 입력 */}
+        {locationFallback && (
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSpin()}
+              placeholder="예: 서울 강남구 테헤란로"
+              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 placeholder:text-slate-500"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+        )}
+
+        {/* 스핀 휠 */}
+        <div className="flex justify-center py-2">
+          <SpinWheel
+            ref={wheelRef}
+            restaurants={restaurants}
+            onSpinEnd={handleSpinEnd}
+          />
         </div>
-      </main>
-    </div>
-  );
+
+        {/* 에러 메시지 */}
+        {error && (
+          <p className="text-amber-400 text-sm text-center">{error}</p>
+        )}
+
+        {/* 필터 패널 */}
+        <FilterPanel
+          radius={radius}
+          category={category}
+          onRadiusChange={setRadius}
+          onCategoryChange={setCategory}
+        />
+
+        {/* CTA 버튼 */}
+        <button
+          onClick={handleSpin}
+          disabled={spinning}
+          className="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black text-lg rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        >
+          {spinning ? '돌아가는 중...' : '🎡 룰렛 돌리기'}
+        </button>
+
+        {/* 결과 카드 */}
+        {winner && (
+          <ResultCard restaurant={winner} onReroll={handleReroll} />
+        )}
+      </div>
+    </main>
+  )
 }
