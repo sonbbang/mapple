@@ -50,10 +50,12 @@ export async function searchRestaurants(params: {
     })
   )
 
+  const EXCLUDE = ['카페', '제과', '베이커리']
   const seen = new Set<string>()
   const all = pageResults.flat().filter((p) => {
     if (seen.has(p.id)) return false
     seen.add(p.id)
+    if (EXCLUDE.some((kw) => p.category_name.includes(kw))) return false
     return true
   })
 

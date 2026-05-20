@@ -72,7 +72,11 @@ const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
               ? restaurant.place_name.slice(0, MAX_LABEL_LEN) + '…'
               : restaurant.place_name
           return (
-            <g key={restaurant.id}>
+            <g
+              key={restaurant.id}
+              onClick={() => !isAnimating && restaurant.place_url && window.open(restaurant.place_url, '_blank')}
+              style={{ cursor: isAnimating ? 'default' : 'pointer' }}
+            >
               <path
                 d={getSlicePath(i, restaurants.length, CX, CY, R)}
                 fill={SLICE_COLORS[i % SLICE_COLORS.length]}

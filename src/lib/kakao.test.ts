@@ -103,6 +103,22 @@ describe('searchRestaurants', () => {
     expect(result).toHaveLength(3)
   })
 
+  it('excludes cafes and bakeries', async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      mockPage(makePlaces([
+        { name: '한식집', cat: '음식점 > 한식' },
+        { name: '파리바게뜨', cat: '음식점 > 카페 > 제과,베이커리' },
+        { name: '스타벅스', cat: '음식점 > 카페' },
+        { name: '일식집', cat: '음식점 > 일식' },
+      ]))
+    )
+
+    const result = await searchRestaurants({ lat: 37.5, lng: 127.0, radius: 500, category: '전체' })
+    expect(result).toHaveLength(2)
+    expect(result.map((p) => p.place_name)).not.toContain('파리바게뜨')
+    expect(result.map((p) => p.place_name)).not.toContain('스타벅스')
+  })
+
   it('throws on non-ok response', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 401 } as Response)
 
