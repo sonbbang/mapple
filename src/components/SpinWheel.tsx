@@ -11,7 +11,11 @@ const SLICE_COLORS = [
 const CX = 95
 const CY = 95
 const R = 88
-const MAX_LABEL_LEN = 5
+function splitLabel(name: string): { line1: string; line2: string | null } {
+  if (name.length <= 4) return { line1: name, line2: null }
+  const raw = name.slice(4, 8)
+  return { line1: name.slice(0, 4), line2: name.length > 8 ? raw + '…' : raw }
+}
 
 export interface SpinWheelRef {
   spin: (winnerIndex: number) => void
@@ -67,10 +71,7 @@ const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
         <circle cx={CX} cy={CY} r={R + 2} fill="#1e293b" />
         {restaurants.map((restaurant, i) => {
           const pos = getLabelPosition(i, restaurants.length, CX, CY, R)
-          const label =
-            restaurant.place_name.length > MAX_LABEL_LEN
-              ? restaurant.place_name.slice(0, MAX_LABEL_LEN) + '…'
-              : restaurant.place_name
+          const { line1, line2 } = splitLabel(restaurant.place_name)
           return (
             <g
               key={restaurant.id}
@@ -90,7 +91,12 @@ const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
                 dominantBaseline="middle"
                 transform={`rotate(${pos.rotation}, ${pos.x}, ${pos.y})`}
               >
-                {label}
+                {line2 ? (
+                  <>
+                    <tspan x={pos.x} dy="-0.65em">{line1}</tspan>
+                    <tspan x={pos.x} dy="1.3em">{line2}</tspan>
+                  </>
+                ) : line1}
               </text>
             </g>
           )

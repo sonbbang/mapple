@@ -31,10 +31,11 @@ describe('SpinWheel', () => {
     expect(screen.getByText('맛집A')).toBeInTheDocument()
   })
 
-  it('5자 초과 이름은 말줄임 처리', () => {
+  it('5자 이상 이름은 두 줄로 분리', () => {
     render(
       <SpinWheel ref={createRef()} restaurants={makePlaces(['일이삼사오육칠'])} onSpinEnd={vi.fn()} />
     )
-    expect(screen.getByText('일이삼사오…')).toBeInTheDocument()
+    expect(screen.getByText('일이삼사')).toBeInTheDocument()
+    expect(screen.getByText('오육칠')).toBeInTheDocument()
   })
 })

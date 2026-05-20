@@ -6,9 +6,10 @@ import { toWalkingMinutes } from '@/lib/utils'
 interface Props {
   restaurant: KakaoPlace
   onReroll: () => void
+  onExclude?: () => void
 }
 
-export default function ResultCard({ restaurant, onReroll }: Props) {
+export default function ResultCard({ restaurant, onReroll, onExclude }: Props) {
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
 
@@ -46,6 +47,14 @@ export default function ResultCard({ restaurant, onReroll }: Props) {
           🔄 다시 돌리기
         </button>
       </div>
+      {onExclude && (
+        <button
+          onClick={onExclude}
+          className="w-full mt-2 py-2 bg-slate-900 text-slate-500 text-xs rounded-lg hover:text-red-400 hover:bg-slate-800 transition-colors"
+        >
+          🚫 이 식당 다음부터 제외
+        </button>
+      )}
     </div>
   )
 }

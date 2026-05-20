@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import FilterPanel from '@/components/FilterPanel'
 import SpinWheel, { type SpinWheelRef } from '@/components/SpinWheel'
 import ResultCard from '@/components/ResultCard'
@@ -28,7 +28,18 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null)
   const [locationFallback, setLocationFallback] = useState(false)
   const [address, setAddress] = useState('')
+  const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set())
+  const excludedIdsRef = useRef<Set<string>>(new Set())
   const wheelRef = useRef<SpinWheelRef>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('mapple_excluded')
+    if (stored) {
+      const ids = new Set<string>(JSON.parse(stored) as string[])
+      setExcludedIds(ids)
+      excludedIdsRef.current = ids
+    }
+  }, [])
 
   // Refs so fetchAndSpin always reads the latest values without stale closure
   const locationRef = useRef<{ lat: number; lng: number } | null>(null)
@@ -62,7 +73,9 @@ export default function Home() {
         return
       }
       const data = await res.json()
-      const list: KakaoPlace[] = data.restaurants
+      const list: KakaoPlace[] = data.restaurants.filter(
+        (r) => !excludedIdsRef.current.has(r.id)
+      )
       if (list.length === 0) {
         setError('주변 식당을 찾지 못했습니다. 반경을 늘려보세요.')
         setSpinning(false)
@@ -110,6 +123,25 @@ export default function Home() {
     setSpinning(false)
     spinningRef.current = false
   }, [])
+
+  const handleExclude = useCallback((id: string) => {
+    setExcludedIds((prev) => {
+      const next = new Set(prev)
+      next.add(id)
+      localStorage.setItem('mapple_excluded', JSON.stringify([...next]))
+      excludedIdsRef.current = next
+      return next
+    })
+    setWinner(null)
+    const remaining = restaurants.filter((r) => r.id !== id)
+    if (remaining.length > 0) {
+      setRestaurants(remaining)
+      setSpinning(true)
+      spinningRef.current = true
+      const winnerIndex = Math.floor(Math.random() * remaining.length)
+      setTimeout(() => wheelRef.current?.spin(winnerIndex), 50)
+    }
+  }, [restaurants])
 
   const handleReroll = useCallback(() => {
     if (restaurants.length === 0) return
@@ -192,7 +224,11 @@ export default function Home() {
 
         {/* 결과 카드 */}
         {winner && (
-          <ResultCard restaurant={winner} onReroll={handleReroll} />
+          <ResultCard
+            restaurant={winner}
+            onReroll={handleReroll}
+            onExclude={() => handleExclude(winner.id)}
+          />
         )}
       </div>
     </main>
