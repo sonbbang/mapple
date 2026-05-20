@@ -2,6 +2,7 @@
 
 import type { KakaoPlace } from '@/lib/kakao'
 import { toWalkingMinutes } from '@/lib/utils'
+import ReviewForm from './ReviewForm'
 
 interface Props {
   restaurant: KakaoPlace
@@ -55,6 +56,7 @@ export default function ResultCard({ restaurant, onReroll, onExclude }: Props) {
           🚫 이 식당 다음부터 제외
         </button>
       )}
+      <ReviewForm placeId={restaurant.id} placeName={restaurant.place_name} />
     </div>
   )
 }
