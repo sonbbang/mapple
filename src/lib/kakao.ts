@@ -50,7 +50,7 @@ export async function searchRestaurants(params: {
     })
   )
 
-  const EXCLUDE = ['카페', '제과', '베이커리']
+  const EXCLUDE = ['카페', '제과', '베이커리', '주점']
   const seen = new Set<string>()
   const all = pageResults.flat().filter((p) => {
     if (seen.has(p.id)) return false

@@ -119,6 +119,19 @@ describe('searchRestaurants', () => {
     expect(result.map((p) => p.place_name)).not.toContain('스타벅스')
   })
 
+  it('주점을 제외한다', async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce(
+      mockPage(makePlaces([
+        { name: '한식집', cat: '음식점 > 한식' },
+        { name: '대우호프', cat: '음식점 > 주점 > 호프,요리주점' },
+        { name: '와인바', cat: '음식점 > 주점 > 와인바' },
+      ]))
+    )
+    const result = await searchRestaurants({ lat: 37.5, lng: 127.0, radius: 500, category: '전체' })
+    expect(result).toHaveLength(1)
+    expect(result[0].place_name).toBe('한식집')
+  })
+
   it('throws on non-ok response', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({ ok: false, status: 401 } as Response)
 
