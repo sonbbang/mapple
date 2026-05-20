@@ -50,8 +50,8 @@ const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
       </div>
 
       <svg
-        width="190"
-        height="190"
+        width="280"
+        height="280"
         viewBox="0 0 190 190"
         style={{
           transform: `rotate(${displayRotation}deg)`,

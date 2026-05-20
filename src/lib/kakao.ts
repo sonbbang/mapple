@@ -37,8 +37,7 @@ export async function searchRestaurants(params: {
 
   if (params.category === '전체') return data.documents
 
-  const filtered = data.documents.filter((p) =>
+  return data.documents.filter((p) =>
     p.category_name.includes(params.category)
   )
-  return filtered.length >= 4 ? filtered : data.documents
 }

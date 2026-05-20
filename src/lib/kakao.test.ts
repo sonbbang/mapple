@@ -68,7 +68,7 @@ describe('searchRestaurants', () => {
     expect(result.every((p) => p.category_name.includes('한식'))).toBe(true)
   })
 
-  it('falls back to all when filtered results < 4', async () => {
+  it('returns only filtered results even when fewer than 4', async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -83,7 +83,8 @@ describe('searchRestaurants', () => {
     } as Response)
 
     const result = await searchRestaurants({ lat: 37.5, lng: 127.0, radius: 1000, category: '한식' })
-    expect(result).toHaveLength(5)
+    expect(result).toHaveLength(2)
+    expect(result.every((p) => p.category_name.includes('한식'))).toBe(true)
   })
 
   it('throws on non-ok response', async () => {
