@@ -49,6 +49,9 @@ export default function Home() {
   const fetchAndSpin = useCallback(
     async (lat: number, lng: number) => {
       locationRef.current = { lat, lng }
+      setSpinning(true)
+      spinningRef.current = true
+      setError(null)
       const res = await fetch(
         `/api/restaurants?lat=${lat}&lng=${lng}&radius=${radiusRef.current}&category=${encodeURIComponent(categoryRef.current)}`
       )
