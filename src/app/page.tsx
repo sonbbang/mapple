@@ -30,23 +30,32 @@ export default function Home() {
   const [address, setAddress] = useState('')
   const wheelRef = useRef<SpinWheelRef>(null)
 
+  // Refs so fetchAndSpin always reads the latest values without stale closure
+  const locationRef = useRef<{ lat: number; lng: number } | null>(null)
+  const categoryRef = useRef<CategoryFilter>('전체')
+  const radiusRef = useRef(1000)
+  const spinningRef = useRef(false)
+
   const startSpin = useCallback((list: KakaoPlace[]) => {
     const capped = list.slice(0, 8)
     setRestaurants(capped)
     setWinner(null)
     setSpinning(true)
+    spinningRef.current = true
     const winnerIndex = Math.floor(Math.random() * capped.length)
     setTimeout(() => wheelRef.current?.spin(winnerIndex), 50)
   }, [])
 
   const fetchAndSpin = useCallback(
     async (lat: number, lng: number) => {
+      locationRef.current = { lat, lng }
       const res = await fetch(
-        `/api/restaurants?lat=${lat}&lng=${lng}&radius=${radius}&category=${encodeURIComponent(category)}`
+        `/api/restaurants?lat=${lat}&lng=${lng}&radius=${radiusRef.current}&category=${encodeURIComponent(categoryRef.current)}`
       )
       if (!res.ok) {
         setError('식당 검색에 실패했습니다. 다시 시도해주세요.')
         setSpinning(false)
+        spinningRef.current = false
         return
       }
       const data = await res.json()
@@ -54,15 +63,16 @@ export default function Home() {
       if (list.length === 0) {
         setError('주변 식당을 찾지 못했습니다. 반경을 늘려보세요.')
         setSpinning(false)
+        spinningRef.current = false
         return
       }
       startSpin(list)
     },
-    [radius, category, startSpin]
+    [startSpin]
   )
 
   const handleSpin = useCallback(async () => {
-    if (spinning) return
+    if (spinningRef.current) return
     setError(null)
 
     if (locationFallback) {
@@ -90,20 +100,38 @@ export default function Home() {
       setLocationFallback(true)
       setError('위치 권한이 거부됐습니다. 아래에 주소를 입력해주세요.')
     }
-  }, [spinning, locationFallback, address, fetchAndSpin])
+  }, [locationFallback, address, fetchAndSpin])
 
   const handleSpinEnd = useCallback((w: KakaoPlace) => {
     setWinner(w)
     setSpinning(false)
+    spinningRef.current = false
   }, [])
 
   const handleReroll = useCallback(() => {
     if (restaurants.length === 0) return
     setWinner(null)
     setSpinning(true)
+    spinningRef.current = true
     const winnerIndex = Math.floor(Math.random() * restaurants.length)
     setTimeout(() => wheelRef.current?.spin(winnerIndex), 50)
   }, [restaurants])
+
+  const handleRadiusChange = useCallback((newRadius: number) => {
+    setRadius(newRadius)
+    radiusRef.current = newRadius
+    if (locationRef.current && !spinningRef.current) {
+      fetchAndSpin(locationRef.current.lat, locationRef.current.lng)
+    }
+  }, [fetchAndSpin])
+
+  const handleCategoryChange = useCallback((newCategory: CategoryFilter) => {
+    setCategory(newCategory)
+    categoryRef.current = newCategory
+    if (locationRef.current && !spinningRef.current) {
+      fetchAndSpin(locationRef.current.lat, locationRef.current.lng)
+    }
+  }, [fetchAndSpin])
 
   return (
     <main className="min-h-screen text-slate-100 flex flex-col items-center px-4 py-8">
@@ -146,8 +174,8 @@ export default function Home() {
         <FilterPanel
           radius={radius}
           category={category}
-          onRadiusChange={setRadius}
-          onCategoryChange={setCategory}
+          onRadiusChange={handleRadiusChange}
+          onCategoryChange={handleCategoryChange}
         />
 
         {/* CTA 버튼 */}
