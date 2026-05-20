@@ -73,7 +73,7 @@ export default function Home() {
         return
       }
       const data = await res.json()
-      const list: KakaoPlace[] = data.restaurants.filter(
+      const list: KakaoPlace[] = (data.restaurants as KakaoPlace[]).filter(
         (r) => !excludedIdsRef.current.has(r.id)
       )
       if (list.length === 0) {
