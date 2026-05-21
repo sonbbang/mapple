@@ -5,7 +5,9 @@ import FilterPanel from '@/components/FilterPanel'
 import SpinWheel, { type SpinWheelRef } from '@/components/SpinWheel'
 import ResultCard from '@/components/ResultCard'
 import SettingsModal from '@/components/SettingsModal'
+import HistoryModal from '@/components/HistoryModal'
 import type { KakaoPlace, CategoryFilter } from '@/lib/kakao'
+import { getFavorites, addFavorite, removeFavorite, isFavorited, addVisitRecord, type Favorite } from '@/lib/storage'
 
 const PLACEHOLDER_RESTAURANTS: KakaoPlace[] = [
   '명동교자', '스시로', '홍콩반점', '한솥도시락',
@@ -34,6 +36,8 @@ export default function Home() {
   const [mapProvider, setMapProvider] = useState<'kakao' | 'naver'>('naver')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [favorites, setFavorites] = useState<Favorite[]>([])
 
   const excludedIdsRef = useRef<Set<string>>(new Set())
   const wheelCountRef = useRef<3 | 5 | 8>(8)
@@ -74,6 +78,7 @@ export default function Home() {
       setTheme('light')
       document.documentElement.classList.remove('dark')
     }
+    setFavorites(getFavorites())
   }, [])
 
   // 테마 토글
@@ -239,6 +244,22 @@ export default function Home() {
     localStorage.removeItem('mapple_excluded')
   }, [])
 
+  const handleToggleFavorite = useCallback((restaurant: KakaoPlace) => {
+    if (isFavorited(restaurant.id)) {
+      setFavorites(removeFavorite(restaurant.id))
+    } else {
+      setFavorites(addFavorite(restaurant))
+    }
+  }, [])
+
+  const handleMapOpen = useCallback((restaurant: KakaoPlace) => {
+    addVisitRecord(restaurant)
+  }, [])
+
+  const handleRemoveFavoriteFromModal = useCallback((id: string) => {
+    setFavorites(removeFavorite(id))
+  }, [])
+
   return (
     <main className="min-h-screen text-gray-900 dark:text-slate-100 flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-sm space-y-4">
@@ -246,13 +267,22 @@ export default function Home() {
         <header className="relative text-center">
           <h1 className="text-2xl font-black">🍽️ 맛플</h1>
           <p className="text-gray-400 dark:text-slate-500 text-sm">오늘 점심, 운에 맡겨봐</p>
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white text-xl transition-colors"
-            aria-label="설정"
-          >
-            ⚙️
-          </button>
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-2">
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white text-xl transition-colors"
+              aria-label="기록"
+            >
+              📋
+            </button>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white text-xl transition-colors"
+              aria-label="설정"
+            >
+              ⚙️
+            </button>
+          </div>
         </header>
 
         {/* 위치 폴백 입력 */}
@@ -276,6 +306,11 @@ export default function Home() {
             restaurants={restaurants}
             mapProvider={mapProvider}
             onSpinEnd={handleSpinEnd}
+            onSliceClick={(r) => {
+              setWinner(r)
+              setSpinning(false)
+              spinningRef.current = false
+            }}
           />
         </div>
 
@@ -306,11 +341,22 @@ export default function Home() {
           <ResultCard
             restaurant={winner}
             mapProvider={mapProvider}
+            isFavorited={favorites.some((f) => f.id === winner.id)}
             onReroll={handleReroll}
             onExclude={() => handleExclude(winner.id)}
+            onToggleFavorite={() => handleToggleFavorite(winner)}
+            onMapOpen={() => handleMapOpen(winner)}
           />
         )}
       </div>
+
+      {historyOpen && (
+        <HistoryModal
+          mapProvider={mapProvider}
+          onRemoveFavorite={handleRemoveFavoriteFromModal}
+          onClose={() => setHistoryOpen(false)}
+        />
+      )}
 
       {settingsOpen && (
         <SettingsModal

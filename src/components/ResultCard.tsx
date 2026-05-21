@@ -7,16 +7,32 @@ import ReviewForm from './ReviewForm'
 interface Props {
   restaurant: KakaoPlace
   mapProvider?: 'kakao' | 'naver'
+  isFavorited?: boolean
   onReroll: () => void
   onExclude?: () => void
+  onToggleFavorite?: () => void
+  onMapOpen?: () => void
 }
 
-export default function ResultCard({ restaurant, mapProvider = 'naver', onReroll, onExclude }: Props) {
+export default function ResultCard({
+  restaurant,
+  mapProvider = 'naver',
+  isFavorited = false,
+  onReroll,
+  onExclude,
+  onToggleFavorite,
+  onMapOpen,
+}: Props) {
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
   const mapUrl = mapProvider === 'naver'
     ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}`
     : restaurant.place_url
+
+  function handleMapClick() {
+    onMapOpen?.()
+    window.open(mapUrl, '_blank', 'noopener,noreferrer')
+  }
 
   return (
     <div className="bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-indigo-950 border-2 border-indigo-500 rounded-2xl p-4">
@@ -37,22 +53,29 @@ export default function ResultCard({ restaurant, mapProvider = 'naver', onReroll
         </div>
       </div>
       <div className="flex gap-2">
-        <a
-          href={mapUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={handleMapClick}
           className={`flex-1 py-2 text-white text-sm font-semibold rounded-lg text-center ${
-            mapProvider === 'naver' ? 'bg-green-500' : 'bg-indigo-500'
-          }`}
+            mapProvider === 'naver' ? 'bg-green-500 hover:bg-green-600' : 'bg-indigo-500 hover:bg-indigo-600'
+          } transition-colors`}
         >
           {mapProvider === 'naver' ? '🗺️ 네이버지도 열기' : '🗺️ 카카오맵 열기'}
-        </a>
+        </button>
         <button
           onClick={onReroll}
           className="flex-1 py-2 bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-200 text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
         >
           🔄 다시 돌리기
         </button>
+        {onToggleFavorite && (
+          <button
+            onClick={onToggleFavorite}
+            className="px-3 py-2 bg-gray-100 dark:bg-slate-700 rounded-lg text-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+            aria-label={isFavorited ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+          >
+            {isFavorited ? '⭐' : '☆'}
+          </button>
+        )}
       </div>
       {onExclude && (
         <button
