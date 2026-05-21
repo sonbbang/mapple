@@ -6,13 +6,17 @@ import ReviewForm from './ReviewForm'
 
 interface Props {
   restaurant: KakaoPlace
+  mapProvider?: 'kakao' | 'naver'
   onReroll: () => void
   onExclude?: () => void
 }
 
-export default function ResultCard({ restaurant, onReroll, onExclude }: Props) {
+export default function ResultCard({ restaurant, mapProvider = 'kakao', onReroll, onExclude }: Props) {
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
+  const mapUrl = mapProvider === 'naver'
+    ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}`
+    : restaurant.place_url
 
   return (
     <div className="bg-gradient-to-br from-slate-800 to-indigo-950 border-2 border-indigo-500 rounded-2xl p-4">
@@ -34,12 +38,14 @@ export default function ResultCard({ restaurant, onReroll, onExclude }: Props) {
       </div>
       <div className="flex gap-2">
         <a
-          href={restaurant.place_url}
+          href={mapUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 py-2 bg-indigo-500 text-white text-sm font-semibold rounded-lg text-center"
+          className={`flex-1 py-2 text-white text-sm font-semibold rounded-lg text-center ${
+            mapProvider === 'naver' ? 'bg-green-500' : 'bg-indigo-500'
+          }`}
         >
-          🗺️ 카카오맵 열기
+          {mapProvider === 'naver' ? '🗺️ 네이버지도 열기' : '🗺️ 카카오맵 열기'}
         </a>
         <button
           onClick={onReroll}

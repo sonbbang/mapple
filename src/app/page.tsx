@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import FilterPanel from '@/components/FilterPanel'
 import SpinWheel, { type SpinWheelRef } from '@/components/SpinWheel'
 import ResultCard from '@/components/ResultCard'
+import SettingsModal from '@/components/SettingsModal'
 import type { KakaoPlace, CategoryFilter } from '@/lib/kakao'
 
 const PLACEHOLDER_RESTAURANTS: KakaoPlace[] = [
@@ -29,7 +30,11 @@ export default function Home() {
   const [locationFallback, setLocationFallback] = useState(false)
   const [address, setAddress] = useState('')
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set())
+  const [wheelCount, setWheelCount] = useState<3 | 5 | 8>(8)
+  const [mapProvider, setMapProvider] = useState<'kakao' | 'naver'>('naver')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const excludedIdsRef = useRef<Set<string>>(new Set())
+  const wheelCountRef = useRef<3 | 5 | 8>(8)
   const wheelRef = useRef<SpinWheelRef>(null)
 
   useEffect(() => {
@@ -38,6 +43,16 @@ export default function Home() {
       const ids = new Set<string>(JSON.parse(stored) as string[])
       setExcludedIds(ids)
       excludedIdsRef.current = ids
+    }
+    const storedCount = localStorage.getItem('mapple_wheel_count')
+    if (storedCount === '3' || storedCount === '5' || storedCount === '8') {
+      const n = Number(storedCount) as 3 | 5 | 8
+      setWheelCount(n)
+      wheelCountRef.current = n
+    }
+    const storedProvider = localStorage.getItem('mapple_map_provider')
+    if (storedProvider === 'kakao' || storedProvider === 'naver') {
+      setMapProvider(storedProvider)
     }
   }, [])
 
@@ -48,7 +63,7 @@ export default function Home() {
   const spinningRef = useRef(false)
 
   const startSpin = useCallback((list: KakaoPlace[]) => {
-    const capped = list.slice(0, 8)
+    const capped = list.slice(0, wheelCountRef.current)
     setRestaurants(capped)
     setWinner(null)
     setSpinning(true)
@@ -168,13 +183,31 @@ export default function Home() {
     }
   }, [fetchAndSpin])
 
+  const handleWheelCountChange = useCallback((n: 3 | 5 | 8) => {
+    setWheelCount(n)
+    wheelCountRef.current = n
+    localStorage.setItem('mapple_wheel_count', String(n))
+  }, [])
+
+  const handleMapProviderChange = useCallback((p: 'kakao' | 'naver') => {
+    setMapProvider(p)
+    localStorage.setItem('mapple_map_provider', p)
+  }, [])
+
   return (
     <main className="min-h-screen text-slate-100 flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-sm space-y-4">
         {/* 헤더 */}
-        <header className="text-center">
+        <header className="relative text-center">
           <h1 className="text-2xl font-black">🍽️ 맛플</h1>
           <p className="text-slate-500 text-sm">오늘 점심, 운에 맡겨봐</p>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xl transition-colors"
+            aria-label="설정"
+          >
+            ⚙️
+          </button>
         </header>
 
         {/* 위치 폴백 입력 */}
@@ -226,11 +259,22 @@ export default function Home() {
         {winner && (
           <ResultCard
             restaurant={winner}
+            mapProvider={mapProvider}
             onReroll={handleReroll}
             onExclude={() => handleExclude(winner.id)}
           />
         )}
       </div>
+
+      {settingsOpen && (
+        <SettingsModal
+          wheelCount={wheelCount}
+          mapProvider={mapProvider}
+          onWheelCountChange={handleWheelCountChange}
+          onMapProviderChange={handleMapProviderChange}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </main>
   )
 }
