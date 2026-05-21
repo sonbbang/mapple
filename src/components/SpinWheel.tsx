@@ -23,11 +23,12 @@ export interface SpinWheelRef {
 
 interface Props {
   restaurants: KakaoPlace[]
+  mapProvider?: 'kakao' | 'naver'
   onSpinEnd: (winner: KakaoPlace) => void
 }
 
 const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
-  { restaurants, onSpinEnd },
+  { restaurants, mapProvider = 'naver', onSpinEnd },
   ref
 ) {
   const rotationRef = useRef(0)
@@ -75,7 +76,13 @@ const SpinWheel = forwardRef<SpinWheelRef, Props>(function SpinWheel(
           return (
             <g
               key={restaurant.id}
-              onClick={() => !isAnimating && restaurant.place_url && window.open(restaurant.place_url, '_blank')}
+              onClick={() => {
+                if (isAnimating) return
+                const url = mapProvider === 'naver'
+                  ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}`
+                  : restaurant.place_url
+                if (url) window.open(url, '_blank')
+              }}
               style={{ cursor: isAnimating ? 'default' : 'pointer' }}
             >
               <path

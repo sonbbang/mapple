@@ -229,6 +229,7 @@ export default function Home() {
           <SpinWheel
             ref={wheelRef}
             restaurants={restaurants}
+            mapProvider={mapProvider}
             onSpinEnd={handleSpinEnd}
           />
         </div>
