@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import type { KakaoPlace } from '@/lib/kakao'
 import { toWalkingMinutes } from '@/lib/utils'
+import { openNaverMap } from '@/lib/naver-map'
 import ReviewForm from './ReviewForm'
 
 interface Props {
@@ -23,18 +25,21 @@ export default function ResultCard({
   onToggleFavorite,
   onMapOpen,
 }: Props) {
+  const [loadingMap, setLoadingMap] = useState(false)
+
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
-  const naverQuery = restaurant.road_address_name
-    ? `${restaurant.place_name} ${restaurant.road_address_name}`
-    : restaurant.place_name
-  const mapUrl = mapProvider === 'naver'
-    ? `https://map.naver.com/p/search/${encodeURIComponent(naverQuery)}`
-    : restaurant.place_url || `https://map.kakao.com/?q=${encodeURIComponent(restaurant.place_name)}`
+  const kakaoUrl = restaurant.place_url || `https://map.kakao.com/?q=${encodeURIComponent(restaurant.place_name)}`
 
-  function handleMapClick() {
+  async function handleMapClick() {
     onMapOpen?.()
-    window.open(mapUrl, '_blank', 'noopener,noreferrer')
+    if (mapProvider === 'naver') {
+      setLoadingMap(true)
+      await openNaverMap(restaurant)
+      setLoadingMap(false)
+    } else {
+      window.open(kakaoUrl, '_blank', 'noopener,noreferrer')
+    }
   }
 
   return (
@@ -62,11 +67,12 @@ export default function ResultCard({
       <div className="flex gap-2">
         <button
           onClick={handleMapClick}
-          className={`flex-1 py-2 text-white text-sm font-semibold rounded-lg text-center ${
+          disabled={loadingMap}
+          className={`flex-1 py-2 text-white text-sm font-semibold rounded-lg text-center disabled:opacity-70 ${
             mapProvider === 'naver' ? 'bg-green-500 hover:bg-green-600' : 'bg-indigo-500 hover:bg-indigo-600'
           } transition-colors`}
         >
-          {mapProvider === 'naver' ? '🗺️ 네이버지도 열기' : '🗺️ 카카오맵 열기'}
+          {loadingMap ? '⏳ 검색 중...' : mapProvider === 'naver' ? '🗺️ 네이버지도 열기' : '🗺️ 카카오맵 열기'}
         </button>
         <button
           onClick={onReroll}

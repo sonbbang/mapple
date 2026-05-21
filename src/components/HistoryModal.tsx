@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getFavorites, getVisitHistory, removeFavorite, type Favorite, type VisitRecord } from '@/lib/storage'
+import { openNaverMap } from '@/lib/naver-map'
 
 interface Props {
   mapProvider: 'kakao' | 'naver'
@@ -14,14 +15,39 @@ function formatDate(iso: string): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
-function mapUrl(place: { place_name: string; place_url: string; road_address_name?: string }, provider: 'kakao' | 'naver'): string {
-  if (provider === 'naver') {
-    const query = place.road_address_name
-      ? `${place.place_name} ${place.road_address_name}`
-      : place.place_name
-    return `https://map.naver.com/p/search/${encodeURIComponent(query)}`
+function MapButton({
+  place,
+  provider,
+  label,
+}: {
+  place: { place_name: string; road_address_name?: string; address_name?: string; place_url: string }
+  provider: 'kakao' | 'naver'
+  label: string
+}) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleClick() {
+    if (provider === 'naver') {
+      setLoading(true)
+      await openNaverMap(place)
+      setLoading(false)
+    } else {
+      const url = place.place_url || `https://map.kakao.com/?q=${encodeURIComponent(place.place_name)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+    }
   }
-  return place.place_url || `https://map.kakao.com/?q=${encodeURIComponent(place.place_name)}`
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className={`flex-1 py-1.5 text-white text-xs font-semibold rounded-lg text-center disabled:opacity-70 ${
+        provider === 'naver' ? 'bg-green-500' : 'bg-indigo-500'
+      }`}
+    >
+      {loading ? '⏳' : '🗺️'} {label}
+    </button>
+  )
 }
 
 export default function HistoryModal({ mapProvider, onRemoveFavorite, onClose }: Props) {
@@ -98,16 +124,7 @@ export default function HistoryModal({ mapProvider, onRemoveFavorite, onClose }:
                     </div>
                   </div>
                   <div className="flex gap-2 mt-2">
-                    <a
-                      href={mapUrl(f, mapProvider)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex-1 py-1.5 text-white text-xs font-semibold rounded-lg text-center ${
-                        mapProvider === 'naver' ? 'bg-green-500' : 'bg-indigo-500'
-                      }`}
-                    >
-                      🗺️ 지도
-                    </a>
+                    <MapButton place={f} provider={mapProvider} label="지도" />
                     <button
                       onClick={() => handleRemove(f.id)}
                       className="flex-1 py-1.5 bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-400 text-xs rounded-lg hover:text-red-500 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
@@ -131,16 +148,7 @@ export default function HistoryModal({ mapProvider, onRemoveFavorite, onClose }:
                   <p className="text-gray-400 dark:text-slate-600 text-xs mt-0.5">
                     {v.category_name.split(' > ').pop()} · {formatDate(v.visitedAt)}
                   </p>
-                  <a
-                    href={mapUrl(v, mapProvider)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`mt-2 block py-1.5 text-white text-xs font-semibold rounded-lg text-center ${
-                      mapProvider === 'naver' ? 'bg-green-500' : 'bg-indigo-500'
-                    }`}
-                  >
-                    🗺️ 지도 열기
-                  </a>
+                  <MapButton place={v} provider={mapProvider} label="지도 열기" />
                 </div>
               ))
           )}
