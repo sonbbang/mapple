@@ -14,10 +14,12 @@ function formatDate(iso: string): string {
   return `${d.getMonth() + 1}월 ${d.getDate()}일`
 }
 
-function mapUrl(place: { place_name: string; place_url: string }, provider: 'kakao' | 'naver'): string {
-  return provider === 'naver'
-    ? `https://map.naver.com/p/search/${encodeURIComponent(place.place_name)}`
-    : place.place_url || `https://map.naver.com/p/search/${encodeURIComponent(place.place_name)}`
+function mapUrl(place: { place_name: string; place_url: string; x?: string; y?: string }, provider: 'kakao' | 'naver'): string {
+  if (provider === 'naver') {
+    const coord = place.x && place.y ? `?c=${place.x},${place.y},15,0,0,0,dh` : ''
+    return `https://map.naver.com/p/search/${encodeURIComponent(place.place_name)}${coord}`
+  }
+  return place.place_url || `https://map.naver.com/p/search/${encodeURIComponent(place.place_name)}`
 }
 
 export default function HistoryModal({ mapProvider, onRemoveFavorite, onClose }: Props) {

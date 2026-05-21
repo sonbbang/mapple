@@ -6,6 +6,7 @@ import type { Review } from '@/lib/supabase'
 interface Props {
   placeId: string
   placeName: string
+  onVisit?: () => void
 }
 
 function StarRow({ rating }: { rating: number }) {
@@ -16,7 +17,7 @@ function StarRow({ rating }: { rating: number }) {
   )
 }
 
-export default function ReviewForm({ placeId, placeName }: Props) {
+export default function ReviewForm({ placeId, placeName, onVisit }: Props) {
   const [rating, setRating] = useState(0)
   const [hovered, setHovered] = useState(0)
   const [comment, setComment] = useState('')
@@ -58,6 +59,7 @@ export default function ReviewForm({ placeId, placeName }: Props) {
       if (res.ok) {
         setSubmitted(true)
         loadReviews()
+        onVisit?.()
       }
     } finally {
       setLoading(false)

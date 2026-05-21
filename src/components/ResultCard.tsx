@@ -26,8 +26,8 @@ export default function ResultCard({
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
   const mapUrl = mapProvider === 'naver'
-    ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}`
-    : restaurant.place_url
+    ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}${restaurant.x && restaurant.y ? `?c=${restaurant.x},${restaurant.y},15,0,0,0,dh` : ''}`
+    : restaurant.place_url || `https://map.kakao.com/?q=${encodeURIComponent(restaurant.place_name)}`
 
   function handleMapClick() {
     onMapOpen?.()
@@ -46,8 +46,12 @@ export default function ResultCard({
             {restaurant.road_address_name || restaurant.address_name}
           </p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-gray-500 dark:text-slate-400 text-xs">🚶 도보 {minutes}분</span>
-            <span className="text-gray-300 dark:text-slate-600 text-xs">·</span>
+            {minutes > 0 && (
+              <>
+                <span className="text-gray-500 dark:text-slate-400 text-xs">🚶 도보 {minutes}분</span>
+                <span className="text-gray-300 dark:text-slate-600 text-xs">·</span>
+              </>
+            )}
             <span className="text-gray-500 dark:text-slate-400 text-xs">{categoryLabel}</span>
           </div>
         </div>

@@ -13,6 +13,8 @@ const makePlaces = (names: string[]): KakaoPlace[] =>
     road_address_name: '서울',
     distance: '100',
     place_url: `https://place.map.kakao.com/${i}`,
+    x: '127.0',
+    y: '37.5',
   }))
 
 describe('SpinWheel', () => {

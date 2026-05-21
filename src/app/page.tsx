@@ -20,6 +20,8 @@ const PLACEHOLDER_RESTAURANTS: KakaoPlace[] = [
   road_address_name: '',
   distance: '0',
   place_url: '',
+  x: '',
+  y: '',
 }))
 
 export default function Home() {

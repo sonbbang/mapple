@@ -11,6 +11,8 @@ const mockPlace: KakaoPlace = {
   road_address_name: '서울 중구 명동10길 29',
   distance: '536',
   place_url: 'https://place.map.kakao.com/12345',
+  x: '127.0',
+  y: '37.5',
 }
 
 describe('ResultCard', () => {

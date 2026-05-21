@@ -8,6 +8,8 @@ export interface KakaoPlace {
   road_address_name: string
   distance: string
   place_url: string
+  x: string  // 경도 (longitude)
+  y: string  // 위도 (latitude)
 }
 
 export type CategoryFilter = '전체' | '한식' | '중식' | '일식' | '양식'
