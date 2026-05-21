@@ -18,7 +18,7 @@ interface Props {
 
 export default function ResultCard({
   restaurant,
-  mapProvider = 'naver',
+  mapProvider = 'kakao',
   isFavorited = false,
   onReroll,
   onExclude,

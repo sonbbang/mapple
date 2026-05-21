@@ -35,7 +35,7 @@ export default function Home() {
   const [address, setAddress] = useState('')
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set())
   const [wheelCount, setWheelCount] = useState<3 | 5 | 8>(8)
-  const [mapProvider, setMapProvider] = useState<'kakao' | 'naver'>('naver')
+  const [mapProvider, setMapProvider] = useState<'kakao' | 'naver'>('kakao')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
