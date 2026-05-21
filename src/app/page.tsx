@@ -32,15 +32,18 @@ export default function Home() {
   const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set())
   const [wheelCount, setWheelCount] = useState<3 | 5 | 8>(8)
   const [mapProvider, setMapProvider] = useState<'kakao' | 'naver'>('naver')
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [settingsOpen, setSettingsOpen] = useState(false)
+
   const excludedIdsRef = useRef<Set<string>>(new Set())
   const wheelCountRef = useRef<3 | 5 | 8>(8)
   const wheelRef = useRef<SpinWheelRef>(null)
 
+  // localStorage 로드
   useEffect(() => {
-    const stored = localStorage.getItem('mapple_excluded')
-    if (stored) {
-      const ids = new Set<string>(JSON.parse(stored) as string[])
+    const storedExcluded = localStorage.getItem('mapple_excluded')
+    if (storedExcluded) {
+      const ids = new Set<string>(JSON.parse(storedExcluded) as string[])
       setExcludedIds(ids)
       excludedIdsRef.current = ids
     }
@@ -55,7 +58,32 @@ export default function Home() {
     if (storedProvider === 'kakao' || storedProvider === 'naver') {
       setMapProvider(storedProvider)
     }
+    const storedRadius = localStorage.getItem('mapple_radius')
+    if (storedRadius === '500' || storedRadius === '1000' || storedRadius === '2000') {
+      const r = Number(storedRadius) as 500 | 1000 | 2000
+      setRadius(r)
+      radiusRef.current = r
+    }
+    const storedCategory = localStorage.getItem('mapple_category')
+    if (['전체', '한식', '중식', '일식', '양식'].includes(storedCategory ?? '')) {
+      setCategory(storedCategory as CategoryFilter)
+      categoryRef.current = storedCategory as CategoryFilter
+    }
+    const storedTheme = localStorage.getItem('mapple_theme')
+    if (storedTheme === 'light') {
+      setTheme('light')
+      document.documentElement.classList.remove('dark')
+    }
   }, [])
+
+  // 테마 토글
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, [theme])
 
   // Refs so fetchAndSpin always reads the latest values without stale closure
   const locationRef = useRef<{ lat: number; lng: number } | null>(null)
@@ -171,6 +199,7 @@ export default function Home() {
   const handleRadiusChange = useCallback((newRadius: number) => {
     setRadius(newRadius)
     radiusRef.current = newRadius
+    localStorage.setItem('mapple_radius', String(newRadius))
     if (locationRef.current && !spinningRef.current) {
       fetchAndSpin(locationRef.current.lat, locationRef.current.lng)
     }
@@ -179,6 +208,7 @@ export default function Home() {
   const handleCategoryChange = useCallback((newCategory: CategoryFilter) => {
     setCategory(newCategory)
     categoryRef.current = newCategory
+    localStorage.setItem('mapple_category', newCategory)
     if (locationRef.current && !spinningRef.current) {
       fetchAndSpin(locationRef.current.lat, locationRef.current.lng)
     }
@@ -198,16 +228,27 @@ export default function Home() {
     localStorage.setItem('mapple_map_provider', p)
   }, [])
 
+  const handleThemeChange = useCallback((t: 'dark' | 'light') => {
+    setTheme(t)
+    localStorage.setItem('mapple_theme', t)
+  }, [])
+
+  const handleClearExcluded = useCallback(() => {
+    setExcludedIds(new Set())
+    excludedIdsRef.current = new Set()
+    localStorage.removeItem('mapple_excluded')
+  }, [])
+
   return (
-    <main className="min-h-screen text-slate-100 flex flex-col items-center px-4 py-8">
+    <main className="min-h-screen text-gray-900 dark:text-slate-100 flex flex-col items-center px-4 py-8">
       <div className="w-full max-w-sm space-y-4">
         {/* 헤더 */}
         <header className="relative text-center">
           <h1 className="text-2xl font-black">🍽️ 맛플</h1>
-          <p className="text-slate-500 text-sm">오늘 점심, 운에 맡겨봐</p>
+          <p className="text-gray-400 dark:text-slate-500 text-sm">오늘 점심, 운에 맡겨봐</p>
           <button
             onClick={() => setSettingsOpen(true)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xl transition-colors"
+            className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white text-xl transition-colors"
             aria-label="설정"
           >
             ⚙️
@@ -223,7 +264,7 @@ export default function Home() {
               onChange={(e) => setAddress(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSpin()}
               placeholder="예: 서울 강남구 테헤란로"
-              className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 placeholder:text-slate-500"
+              className="w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg px-4 py-2.5 text-sm text-gray-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 placeholder:text-gray-400 dark:placeholder:text-slate-500"
             />
           </div>
         )}
@@ -240,7 +281,7 @@ export default function Home() {
 
         {/* 에러 메시지 */}
         {error && (
-          <p className="text-amber-400 text-sm text-center">{error}</p>
+          <p className="text-amber-500 dark:text-amber-400 text-sm text-center">{error}</p>
         )}
 
         {/* 필터 패널 */}
@@ -275,8 +316,16 @@ export default function Home() {
         <SettingsModal
           wheelCount={wheelCount}
           mapProvider={mapProvider}
+          radius={radius}
+          category={category}
+          excludedCount={excludedIds.size}
+          theme={theme}
           onWheelCountChange={handleWheelCountChange}
           onMapProviderChange={handleMapProviderChange}
+          onRadiusChange={handleRadiusChange}
+          onCategoryChange={handleCategoryChange}
+          onClearExcluded={handleClearExcluded}
+          onThemeChange={handleThemeChange}
           onClose={() => setSettingsOpen(false)}
         />
       )}

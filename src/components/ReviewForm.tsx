@@ -68,11 +68,11 @@ export default function ReviewForm({ placeId, placeName }: Props) {
   const reviewCount = reviews.length
 
   return (
-    <div className="mt-3 pt-3 border-t border-slate-700">
-      <p className="text-slate-400 text-xs font-semibold mb-2 uppercase tracking-wider">리뷰 남기기</p>
+    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
+      <p className="text-gray-500 dark:text-slate-400 text-xs font-semibold mb-2 uppercase tracking-wider">리뷰 남기기</p>
 
       {reviewCount > 0 && (
-        <p className="text-slate-400 text-xs mb-3">
+        <p className="text-gray-500 dark:text-slate-400 text-xs mb-3">
           평균 <StarRow rating={Math.round(avgRating)} /> ({reviewCount}명 방문)
         </p>
       )}
@@ -85,7 +85,7 @@ export default function ReviewForm({ placeId, placeName }: Props) {
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
-                className={`text-xl transition-colors ${star <= displayStars ? 'text-yellow-400' : 'text-slate-600'}`}
+                className={`text-xl transition-colors ${star <= displayStars ? 'text-yellow-400' : 'text-gray-300 dark:text-slate-600'}`}
                 onMouseEnter={() => setHovered(star)}
                 onMouseLeave={() => setHovered(0)}
                 onClick={() => setRating(star)}
@@ -93,7 +93,7 @@ export default function ReviewForm({ placeId, placeName }: Props) {
                 ★
               </button>
             ))}
-            {rating > 0 && <span className="text-slate-400 text-xs ml-1">{rating}점</span>}
+            {rating > 0 && <span className="text-gray-500 dark:text-slate-400 text-xs ml-1">{rating}점</span>}
           </div>
 
           <textarea
@@ -101,20 +101,20 @@ export default function ReviewForm({ placeId, placeName }: Props) {
             onChange={(e) => setComment(e.target.value)}
             placeholder="한 줄 메모 (선택)"
             rows={2}
-            className="w-full bg-slate-900 text-slate-200 text-xs rounded-lg px-3 py-2 resize-none placeholder-slate-600 border border-slate-700 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-slate-200 text-xs rounded-lg px-3 py-2 resize-none placeholder-gray-400 dark:placeholder-slate-600 border border-gray-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500"
           />
 
           <div className="flex items-center gap-2">
-            <span className="text-slate-400 text-xs">재방문?</span>
+            <span className="text-gray-500 dark:text-slate-400 text-xs">재방문?</span>
             <button
               onClick={() => setRevisit(revisit === true ? null : true)}
-              className={`px-3 py-1 rounded-lg text-xs transition-colors ${revisit === true ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+              className={`px-3 py-1 rounded-lg text-xs transition-colors ${revisit === true ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'}`}
             >
               👍 예
             </button>
             <button
               onClick={() => setRevisit(revisit === false ? null : false)}
-              className={`px-3 py-1 rounded-lg text-xs transition-colors ${revisit === false ? 'bg-red-900 text-red-300' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+              className={`px-3 py-1 rounded-lg text-xs transition-colors ${revisit === false ? 'bg-red-900 text-red-300' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'}`}
             >
               👎 아니오
             </button>
@@ -132,19 +132,19 @@ export default function ReviewForm({ placeId, placeName }: Props) {
 
       {reviewCount > 0 && (
         <div className="mt-4 space-y-2">
-          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">다른 사람 리뷰</p>
+          <p className="text-gray-400 dark:text-slate-500 text-xs font-semibold uppercase tracking-wider">다른 사람 리뷰</p>
           {reviews.map((r) => (
-            <div key={r.id} className="bg-slate-900 rounded-lg px-3 py-2 space-y-1">
+            <div key={r.id} className="bg-gray-50 dark:bg-slate-900 rounded-lg px-3 py-2 space-y-1">
               <div className="flex items-center gap-2">
                 <StarRow rating={r.rating} />
                 {r.revisit === true && <span className="text-xs text-indigo-400">👍 재방문</span>}
                 {r.revisit === false && <span className="text-xs text-red-400">👎 재방문 안함</span>}
-                <span className="text-slate-600 text-xs ml-auto">
+                <span className="text-gray-400 dark:text-slate-600 text-xs ml-auto">
                   {new Date(r.visited_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                 </span>
               </div>
               {r.comment && (
-                <p className="text-slate-300 text-xs leading-relaxed">{r.comment}</p>
+                <p className="text-gray-700 dark:text-slate-300 text-xs leading-relaxed">{r.comment}</p>
               )}
             </div>
           ))}

@@ -17,8 +17,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      <body className={`${inter.className} bg-slate-950 min-h-screen`}>{children}</body>
+    <html lang="ko" className="dark" suppressHydrationWarning>
+      <body className={`${inter.className} bg-gray-50 dark:bg-slate-950 min-h-screen`}>{children}</body>
     </html>
   )
 }

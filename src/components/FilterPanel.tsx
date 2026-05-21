@@ -24,19 +24,19 @@ interface Props {
 }
 
 export default function FilterPanel({ radius, category, onRadiusChange, onCategoryChange }: Props) {
+  const btnInactive = 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
+
   return (
-    <div className="bg-slate-800 rounded-xl p-4 space-y-4">
+    <div className="bg-white dark:bg-slate-800 rounded-xl p-4 space-y-4">
       <div>
-        <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">거리</p>
+        <p className="text-gray-400 dark:text-slate-400 text-xs uppercase tracking-widest mb-2">거리</p>
         <div className="flex gap-2">
           {DISTANCE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => onRadiusChange(opt.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                radius === opt.value
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                radius === opt.value ? 'bg-indigo-500 text-white' : btnInactive
               }`}
             >
               {opt.label}
@@ -45,16 +45,14 @@ export default function FilterPanel({ radius, category, onRadiusChange, onCatego
         </div>
       </div>
       <div>
-        <p className="text-slate-400 text-xs uppercase tracking-widest mb-2">카테고리</p>
+        <p className="text-gray-400 dark:text-slate-400 text-xs uppercase tracking-widest mb-2">카테고리</p>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => onCategoryChange(opt.value)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                category === opt.value
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                category === opt.value ? 'bg-indigo-500 text-white' : btnInactive
               }`}
             >
               {opt.label}

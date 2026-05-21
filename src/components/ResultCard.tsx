@@ -11,7 +11,7 @@ interface Props {
   onExclude?: () => void
 }
 
-export default function ResultCard({ restaurant, mapProvider = 'kakao', onReroll, onExclude }: Props) {
+export default function ResultCard({ restaurant, mapProvider = 'naver', onReroll, onExclude }: Props) {
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
   const mapUrl = mapProvider === 'naver'
@@ -19,20 +19,20 @@ export default function ResultCard({ restaurant, mapProvider = 'kakao', onReroll
     : restaurant.place_url
 
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-indigo-950 border-2 border-indigo-500 rounded-2xl p-4">
+    <div className="bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-indigo-950 border-2 border-indigo-500 rounded-2xl p-4">
       <div className="flex gap-3 items-start mb-3">
         <div className="bg-indigo-500 rounded-lg p-2 text-xl shrink-0">🍽️</div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-white font-black text-lg leading-tight truncate">
+          <h2 className="text-gray-900 dark:text-white font-black text-lg leading-tight truncate">
             {restaurant.place_name}
           </h2>
-          <p className="text-slate-400 text-xs mt-0.5 line-clamp-1">
+          <p className="text-gray-500 dark:text-slate-400 text-xs mt-0.5 line-clamp-1">
             {restaurant.road_address_name || restaurant.address_name}
           </p>
           <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <span className="text-slate-400 text-xs">🚶 도보 {minutes}분</span>
-            <span className="text-slate-600 text-xs">·</span>
-            <span className="text-slate-400 text-xs">{categoryLabel}</span>
+            <span className="text-gray-500 dark:text-slate-400 text-xs">🚶 도보 {minutes}분</span>
+            <span className="text-gray-300 dark:text-slate-600 text-xs">·</span>
+            <span className="text-gray-500 dark:text-slate-400 text-xs">{categoryLabel}</span>
           </div>
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function ResultCard({ restaurant, mapProvider = 'kakao', onReroll
         </a>
         <button
           onClick={onReroll}
-          className="flex-1 py-2 bg-slate-700 text-slate-200 text-sm rounded-lg hover:bg-slate-600 transition-colors"
+          className="flex-1 py-2 bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-200 text-sm rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
         >
           🔄 다시 돌리기
         </button>
@@ -57,7 +57,7 @@ export default function ResultCard({ restaurant, mapProvider = 'kakao', onReroll
       {onExclude && (
         <button
           onClick={onExclude}
-          className="w-full mt-2 py-2 bg-slate-900 text-slate-500 text-xs rounded-lg hover:text-red-400 hover:bg-slate-800 transition-colors"
+          className="w-full mt-2 py-2 bg-gray-50 text-gray-400 dark:bg-slate-900 dark:text-slate-500 text-xs rounded-lg hover:text-red-500 hover:bg-gray-100 dark:hover:text-red-400 dark:hover:bg-slate-800 transition-colors"
         >
           🚫 이 식당 다음부터 제외
         </button>
