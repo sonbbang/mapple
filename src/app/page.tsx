@@ -49,6 +49,7 @@ export default function Home() {
       const n = Number(storedCount) as 3 | 5 | 8
       setWheelCount(n)
       wheelCountRef.current = n
+      setRestaurants(PLACEHOLDER_RESTAURANTS.slice(0, n))
     }
     const storedProvider = localStorage.getItem('mapple_map_provider')
     if (storedProvider === 'kakao' || storedProvider === 'naver') {
@@ -187,6 +188,9 @@ export default function Home() {
     setWheelCount(n)
     wheelCountRef.current = n
     localStorage.setItem('mapple_wheel_count', String(n))
+    if (!locationRef.current) {
+      setRestaurants(PLACEHOLDER_RESTAURANTS.slice(0, n))
+    }
   }, [])
 
   const handleMapProviderChange = useCallback((p: 'kakao' | 'naver') => {
