@@ -25,8 +25,11 @@ export default function ResultCard({
 }: Props) {
   const minutes = toWalkingMinutes(Number(restaurant.distance))
   const categoryLabel = restaurant.category_name.split(' > ').pop() ?? restaurant.category_name
+  const naverQuery = restaurant.road_address_name
+    ? `${restaurant.place_name} ${restaurant.road_address_name}`
+    : restaurant.place_name
   const mapUrl = mapProvider === 'naver'
-    ? `https://map.naver.com/p/search/${encodeURIComponent(restaurant.place_name)}${restaurant.x && restaurant.y ? `?c=${restaurant.x},${restaurant.y},15,0,0,0,dh` : ''}`
+    ? `https://map.naver.com/p/search/${encodeURIComponent(naverQuery)}`
     : restaurant.place_url || `https://map.kakao.com/?q=${encodeURIComponent(restaurant.place_name)}`
 
   function handleMapClick() {

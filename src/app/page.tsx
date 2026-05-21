@@ -44,6 +44,7 @@ export default function Home() {
   const excludedIdsRef = useRef<Set<string>>(new Set())
   const wheelCountRef = useRef<3 | 5 | 8>(8)
   const wheelRef = useRef<SpinWheelRef>(null)
+  const resultRef = useRef<HTMLDivElement>(null)
 
   // localStorage 로드
   useEffect(() => {
@@ -91,6 +92,13 @@ export default function Home() {
       document.documentElement.classList.remove('dark')
     }
   }, [theme])
+
+  // 결과 카드 자동 스크롤
+  useEffect(() => {
+    if (winner) {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [winner])
 
   // Refs so fetchAndSpin always reads the latest values without stale closure
   const locationRef = useRef<{ lat: number; lng: number } | null>(null)
@@ -339,17 +347,19 @@ export default function Home() {
         </button>
 
         {/* 결과 카드 */}
-        {winner && (
-          <ResultCard
-            restaurant={winner}
-            mapProvider={mapProvider}
-            isFavorited={favorites.some((f) => f.id === winner.id)}
-            onReroll={handleReroll}
-            onExclude={() => handleExclude(winner.id)}
-            onToggleFavorite={() => handleToggleFavorite(winner)}
-            onMapOpen={() => handleMapOpen(winner)}
-          />
-        )}
+        <div ref={resultRef}>
+          {winner && (
+            <ResultCard
+              restaurant={winner}
+              mapProvider={mapProvider}
+              isFavorited={favorites.some((f) => f.id === winner.id)}
+              onReroll={handleReroll}
+              onExclude={() => handleExclude(winner.id)}
+              onToggleFavorite={() => handleToggleFavorite(winner)}
+              onMapOpen={() => handleMapOpen(winner)}
+            />
+          )}
+        </div>
       </div>
 
       {historyOpen && (
