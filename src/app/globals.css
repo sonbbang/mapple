@@ -26,5 +26,7 @@ body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   max-width: 480px;
+  max-height: 960px;
   margin: 0 auto;
+  overflow-y: auto;
 }
